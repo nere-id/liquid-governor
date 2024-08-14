@@ -48,6 +48,10 @@ contract DelegateToken is ERC721 {
         _;
     }
 
+    /**
+     * @notice msg.sender must (a) configured governor and (b) deployed from expected factory.
+     * @param contractAddress the contract that we expect msg.sender to be the governor of.
+     */
     modifier onlyLiquidGovernor(address contractAddress) {
         address governor = BLAST.governorMap(contractAddress);
         bool isLiquid = _factory.isLiquidGovernor(governor);
@@ -55,17 +59,25 @@ contract DelegateToken is ERC721 {
         _;
     }    
 
-    function getDelegateId(address contractAddress) external view returns (uint256) {        
+    /**
+     * @param contractAddress The contract that we want the token id for.
+     * @return tokenId Id of the delegate token for contractAddress. Returns 0 if no token exists.
+     */
+    function getDelegateId(address contractAddress) external view returns (uint32 tokenId) {        
         return configs[contractAddress].tokenId;
     }
 
+    /**
+     * @param contractAddress The contract that we want the config for.
+     * @return config The current delegate configuration for contractAddress
+     */
     function getConfig(address contractAddress) external view returns (DelegateConfig memory config) {
         return configs[contractAddress];
     }
 
     /**
      * @notice Mint an NFT (Delegate) that will delegate gas and/or ETH yield claims up until `expiration`
-     * @notice each contract can only have a single active delegate NFT in circulation at a time     
+     * @notice Each contract can only have a single active delegate NFT in circulation at a time     
      * @param to the address that the token will be minted to
      * @param contractAddress the contract from which gas and/or yield will be claimed
      * @param expiration timestamp of when the NFT's ability to claim will expire
@@ -91,6 +103,10 @@ contract DelegateToken is ERC721 {
         _mint(to, tokenId);
     }        
 
+    /**
+     * @notice Destroy the delegate token for contractAddress. Must be called by LiquidGovernor.
+     * @param contractAddress The contract for which the corresponding delegate token should be destroyed.
+     */
     function burn(address contractAddress) onlyLiquidGovernor(contractAddress) external {        
         DelegateConfig memory config = configs[contractAddress];          
         uint256 tokenId = config.tokenId; 
