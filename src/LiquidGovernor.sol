@@ -113,8 +113,8 @@ contract LiquidGovernor is Ownable {
         // Only token holder can make claim early
         if (config.expiration > block.timestamp && owner != msg.sender) 
             revert UnauthorizedEarlyClaim();                
-        uint256 gasClaimed = config.canClaimGas ? claimMaxGas(contractAddress, recipient) : 0;
-        uint256 yieldClaimed = config.canClaimYield ? claimAllYield(contractAddress, recipient) : 0;        
+        uint256 gasClaimed = config.canClaimGas ? _claimMaxGas(contractAddress, recipient) : 0;
+        uint256 yieldClaimed = config.canClaimYield ? _claimAllYield(contractAddress, recipient) : 0;        
         delegateToken.burn(contractAddress);
         emit ClaimProcessed(config.tokenId, contractAddress, recipient, gasClaimed, yieldClaimed);
     }
@@ -130,6 +130,15 @@ contract LiquidGovernor is Ownable {
         YieldMode yieldMode = YieldMode(BLAST.readYieldConfiguration(contractAddress));
         if (gas && gasMode != GasMode.CLAIMABLE) BLAST.configureClaimableGasOnBehalf(contractAddress);
         if (yield && yieldMode != YieldMode.CLAIMABLE) BLAST.configureClaimableYieldOnBehalf(contractAddress);
+    }
+
+
+    function _claimMaxGas(address contractAddress, address recipient) internal returns (uint256) {
+        return BLAST.claimMaxGas(contractAddress, recipient);
+    }
+
+    function _claimAllYield(address contractAddress, address recipient) internal returns (uint256) {
+        return BLAST.claimAllYield(contractAddress, recipient);
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////

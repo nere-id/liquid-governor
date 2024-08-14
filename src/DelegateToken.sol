@@ -100,6 +100,7 @@ contract DelegateToken is ERC721 {
         config.expiration = expiration;
         config.canClaimGas = canClaimGas;
         config.canClaimYield = canClaimYield;
+        configs[contractAddress] = config;
         _mint(to, tokenId);
     }        
 
