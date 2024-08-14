@@ -132,7 +132,6 @@ contract LiquidGovernor is Ownable {
         if (yield && yieldMode != YieldMode.CLAIMABLE) BLAST.configureClaimableYieldOnBehalf(contractAddress);
     }
 
-
     function _claimMaxGas(address contractAddress, address recipient) internal returns (uint256) {
         return BLAST.claimMaxGas(contractAddress, recipient);
     }

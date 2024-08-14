@@ -37,7 +37,7 @@ contract LiquidGovernorTest is Test {
     );
 
     error DelegateIsActive(address contractAddress, uint32 tokenId);
-    error UnauthorizedEarlyClaim();
+    error UnauthorizedEarlyClaim();    
     
     modifier vaultGovSet() {
         vm.prank(owner);
@@ -185,6 +185,12 @@ contract LiquidGovernorTest is Test {
         emit ClaimProcessed(1, address(vault), tokenHolder, 0, 0);        
         vm.prank(tokenHolder);
         vaultGovernor.processClaim(address(vault));        
+
+        config = delegateToken.getConfig(address(vault));
+        assertEq(config.tokenId, 0);
+        assertEq(config.expiration, 0);
+        assertEq(config.canClaimGas, false);
+        assertEq(config.canClaimYield, false);    
     }
 
     function test_tokenHolderClaimToWorks() public vaultGovSet delegateActive {
@@ -194,6 +200,12 @@ contract LiquidGovernorTest is Test {
         emit ClaimProcessed(1, address(vault), rando, 0, 0);        
         vm.prank(tokenHolder);
         vaultGovernor.processClaim(address(vault), rando);   
+
+        config = delegateToken.getConfig(address(vault));
+        assertEq(config.tokenId, 0);
+        assertEq(config.expiration, 0);
+        assertEq(config.canClaimGas, false);
+        assertEq(config.canClaimYield, false);    
     }
 
     function test_randoEarlyClaimReverts() public vaultGovSet delegateActive {
@@ -202,6 +214,13 @@ contract LiquidGovernorTest is Test {
         vm.expectRevert(UnauthorizedEarlyClaim.selector);
         vm.prank(rando);
         vaultGovernor.processClaim(address(vault));        
+
+        config = delegateToken.getConfig(address(vault));
+        assertEq(config.tokenId, 1);
+        assertEq(config.expiration, block.timestamp + 1 hours);
+        assertEq(config.canClaimGas, true);
+        assertEq(config.canClaimYield, true);  
+        assertEq(tokenHolder, delegateToken.ownerOf(1));
     }
 
     function test_randoExpiredClaimWorks() public vaultGovSet delegateActive {
@@ -212,6 +231,12 @@ contract LiquidGovernorTest is Test {
         emit ClaimProcessed(1, address(vault), tokenHolder, 0, 0);        
         vm.prank(rando);
         vaultGovernor.processClaim(address(vault));   
+
+        config = delegateToken.getConfig(address(vault));
+        assertEq(config.tokenId, 0);
+        assertEq(config.expiration, 0);
+        assertEq(config.canClaimGas, false);
+        assertEq(config.canClaimYield, false);    
     }
 
     function test_randoExpiredClaimToWorks() public vaultGovSet delegateActive {
@@ -222,5 +247,11 @@ contract LiquidGovernorTest is Test {
         emit ClaimProcessed(1, address(vault), tokenHolder, 0, 0);        
         vm.prank(rando);
         vaultGovernor.processClaim(address(vault), rando);   
+
+        config = delegateToken.getConfig(address(vault));
+        assertEq(config.tokenId, 0);
+        assertEq(config.expiration, 0);
+        assertEq(config.canClaimGas, false);
+        assertEq(config.canClaimYield, false);    
     }
 }
